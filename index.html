@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UHI–SDGs Analytics | Thesis 1 V2</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#dfe4ec;--accent:#1769aa;--accent2:#0b8f72;--warn:#b7791f;--danger:#c53030}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#102a43,#1769aa);color:#fff;padding:24px 18px;position:sticky;top:0;z-index:10;box-shadow:0 3px 15px #0002}
+header h1{margin:0 0 5px;font-size:25px}header p{margin:0;opacity:.9}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.tab{border:1px solid #ffffff55;background:#ffffff14;color:#fff;padding:9px 13px;border-radius:9px;cursor:pointer}.tab.active{background:#fff;color:#102a43}
+main{max-width:1250px;margin:auto;padding:18px}.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:0 2px 7px #17203308;margin-bottom:15px}
+.card h2,.card h3{margin-top:0}.kpi{font-size:28px;font-weight:800}.muted{color:var(--muted);font-size:13px}
+button,.btn{border:0;border-radius:9px;padding:10px 13px;background:var(--accent);color:#fff;cursor:pointer;font-weight:650}.btn.alt{background:var(--accent2)}.btn.gray{background:#64748b}.btn.warn{background:var(--warn)}.btn.danger{background:var(--danger)}
+input,select,textarea{width:100%;padding:9px;border:1px solid #cfd6e0;border-radius:8px;background:#fff;color:var(--ink)}label{display:block;font-weight:650;font-size:13px;margin:8px 0 5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left}th{background:#f0f4f8;position:sticky;top:0}
+.scroll{overflow:auto;max-height:430px}.pill{display:inline-block;padding:4px 8px;border-radius:99px;background:#e7f3ff;color:#125b91;font-size:12px;font-weight:700}
+.note{background:#fff8e8;border-left:4px solid #d69e2e;padding:11px;border-radius:7px}.ok{background:#e8f8f3;border-left:4px solid #0b8f72;padding:11px;border-radius:7px}
+canvas{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.small{font-size:12px}.formula{font-family:ui-monospace,monospace;background:#f1f5f9;padding:10px;border-radius:8px;display:block}
+footer{text-align:center;color:var(--muted);padding:30px}
+@media(max-width:650px){header h1{font-size:20px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌡️ UHI–SDGs Analytics</h1>
+  <p>Thesis 1 V2 • GEE/Landsat → CSV → UHI → Trend → Regression → Forecast → Scenario</p>
+  <nav>
+    <button class="tab active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button class="tab" onclick="showPage('gee',this)">🛰️ GEE / SOP</button>
+    <button class="tab" onclick="showPage('data',this)">Data Editor</button>
+    <button class="tab" onclick="showPage('uhi',this)">UHI Engine</button>
+    <button class="tab" onclick="showPage('stats',this)">Statistics</button>
+    <button class="tab" onclick="showPage('forecast',this)">Forecast</button>
+    <button class="tab" onclick="showPage('scenario',this)">Scenario</button>
+    <button class="tab" onclick="showPage('report',this)">Report</button>
+  </nav>
+</header>
+
+<main>
+<section id="dashboard" class="page active">
+  <div class="grid">
+    <div class="card"><div class="muted">Arsitektur</div><div class="kpi">SATELIT + BMKG</div><p>LST • NDVI • Built-up • Tavg • RH • Angin</p></div>
+    <div class="card"><div class="muted">UHI</div><div class="kpi" id="kpiUhi">—</div><p>Rata-rata UHI dari data aktif</p></div>
+    <div class="card"><div class="muted">Observasi</div><div class="kpi" id="kpiN">0</div><p>Baris data aktif</p></div>
+    <div class="card"><div class="muted">R²</div><div class="kpi" id="kpiR2">—</div><p>Model UHI terhadap variabel numerik</p></div>
+  </div>
+  <div class="card">
+    <h2>Pipeline Thesis 1</h2>
+    <div class="grid">
+      <div><span class="pill">01 DATA</span><p>GEE/Landsat: LST, NDVI, Built-up</p><p>BMKG: Tavg, RH, Angin, hujan, penyinaran</p></div>
+      <div><span class="pill">02 UHI</span><p>Urban LST − Reference LST</p><p>Peta/kelompok kawasan melalui data agregat atau grid.</p></div>
+      <div><span class="pill">03 ANALYTICS</span><p>Trend • Korelasi • Regresi • R²</p></div>
+      <div><span class="pill">04 FORECAST</span><p>Forecast deret waktu dan evaluasi error.</p></div>
+      <div><span class="pill">05 SCENARIO</span><p>Simulasi perubahan NDVI/Built-up/Tavg dan dampaknya pada model.</p></div>
+      <div><span class="pill">06 SDGs</span><p>Informasi pendukung SDG 11 & 13 dan perencanaan infrastruktur.</p></div>
+    </div>
+    <div class="note">Catatan metodologis: LST dihitung dari data satelit/hasil pengolahan, sedangkan BMKG digunakan sebagai data atmosfer. Keduanya tidak dicampur sebagai satu pengukuran yang sama.</div>
+  </div>
+  <div class="card"><h2>Status Data</h2><div id="status">Belum ada data. Gunakan demo atau impor CSV.</div></div>
+</section>
+
+<section id="gee" class="page">
+  <div class="card">
+    <h2>🛰️ Workflow Landsat → Google Earth Engine → CSV</h2>
+    <div class="note"><b>Konsep:</b> HTML ini tidak mengolah file Landsat mentah. Google Earth Engine (GEE) digunakan sebagai tahap pengolahan citra; HTML ini menerima hasil tabel/CSV untuk analisis UHI.</div>
+    <div class="grid">
+      <div><span class="pill">01</span><h3>Siapkan wilayah</h3><p>Gambar ROI Urban dan ROI Reference di GEE.</p></div>
+      <div><span class="pill">02</span><h3>Pilih Landsat</h3><p>Gunakan Landsat Collection 2 Level-2 dan periode penelitian.</p></div>
+      <div><span class="pill">03</span><h3>Proses indikator</h3><p>Turunkan LST, NDVI, dan indikator built-up/NDBI.</p></div>
+      <div><span class="pill">04</span><h3>Export CSV</h3><p>Export nilai tahunan/bulanan dan gabungkan dengan data BMKG.</p></div>
+    </div>
+    <div class="actions">
+      <button onclick="window.open('https://code.earthengine.google.com/','_blank')">Buka Google Earth Engine</button>
+      <button class="btn alt" onclick="downloadTemplate()">Download Template CSV</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📋 Format CSV yang diterima</h2>
+    <p class="muted">Kolom minimum untuk menghitung UHI: <b>date, lst_urban, lst_reference</b>. Variabel lain dapat diisi jika tersedia.</p>
+    <div class="scroll"><table><thead><tr><th>Kolom</th><th>Fungsi</th><th>Contoh</th></tr></thead><tbody>
+      <tr><td>date</td><td>Tahun/tanggal observasi</td><td>2024-01-01</td></tr>
+      <tr><td>location</td><td>Lokasi</td><td>Urban</td></tr>
+      <tr><td>lst_urban</td><td>LST kawasan urban (°C)</td><td>35.8</td></tr>
+      <tr><td>lst_reference</td><td>LST kawasan referensi (°C)</td><td>30.2</td></tr>
+      <tr><td>ndvi</td><td>Indeks vegetasi</td><td>0.40</td></tr>
+      <tr><td>built_up</td><td>Indikator built-up/NDBI atau persentase yang terdokumentasi</td><td>0.18</td></tr>
+      <tr><td>tavg, rh, wind</td><td>Data atmosfer BMKG</td><td>28.0, 81, 2.0</td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <h2>✅ Checklist sebelum analisis</h2>
+    <div class="ok">① Sumber dan periode citra dicatat → ② ROI Urban & Reference konsisten → ③ Satuan LST = °C → ④ Data BMKG dicatat sumber/periode → ⑤ CSV diperiksa → ⑥ Baru jalankan UHI, statistik dan forecasting.</div>
+  </div>
+</section>
+
+<section id="data" class="page">
+  <div class="card">
+    <h2>Data Editor</h2>
+    <p class="muted">Format utama: tanggal, lokasi, lst_urban, lst_reference, ndvi, built_up, tavg, rh, wind, rain, sunshine.</p>
+    <div class="actions">
+      <button onclick="loadDemo()">Muat Data Demo</button>
+      <label class="btn gray" style="display:inline-block;width:auto">Impor CSV <input id="csvFile" type="file" accept=".csv" hidden onchange="importCSV(event)"></label>
+      <button class="btn alt" onclick="exportCSV()">Export CSV</button>
+      <button class="btn warn" onclick="clearData()">Kosongkan</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Tambah Observasi</h3>
+    <div class="grid">
+      <div><label>Tanggal</label><input id="f_date" type="date"></div><div><label>Lokasi</label><input id="f_loc" value="Urban"></div>
+      <div><label>LST Urban (°C)</label><input id="f_lu" type="number" step=".01"></div><div><label>LST Reference (°C)</label><input id="f_lr" type="number" step=".01"></div>
+      <div><label>NDVI</label><input id="f_ndvi" type="number" step=".001"></div><div><label>Built-up (%)</label><input id="f_bu" type="number" step=".01"></div>
+      <div><label>Tavg (°C)</label><input id="f_t" type="number" step=".01"></div><div><label>RH (%)</label><input id="f_rh" type="number" step=".01"></div>
+      <div><label>Wind (m/s)</label><input id="f_w" type="number" step=".01"></div><div><label>Rain (mm)</label><input id="f_rain" type="number" step=".01"></div>
+      <div><label>Sunshine (jam)</label><input id="f_sun" type="number" step=".01"></div>
+    </div>
+    <div class="actions"><button onclick="addRow()">Tambah</button></div>
+  </div>
+  <div class="card"><div class="scroll"><table id="dataTable"></table></div></div>
+</section>
+
+<section id="uhi" class="page">
+  <div class="card"><h2>UHI Engine</h2><p>Rumus dasar: <span class="formula">UHI = LST Urban − LST Reference</span></p>
+    <div class="grid"><div><label>Definisi kawasan</label><select id="uhiMethod"><option value="direct">Kolom Urban − Reference</option><option value="custom">Masukkan LST urban & reference dari data aktif</option></select></div>
+    <div><label>Ambang UHI informatif (°C)</label><input id="uhiThreshold" value="2" type="number" step=".1"></div></div>
+  </div>
+  <div class="card"><h3>Ringkasan UHI</h3><div id="uhiSummary">Belum ada data.</div></div>
+  <div class="card"><h3>Grafik UHI</h3><canvas id="uhiChart" width="1000" height="300"></canvas></div>
+</section>
+
+<section id="stats" class="page">
+  <div class="card"><h2>Statistics</h2><p>Regresi sederhana menggunakan UHI sebagai Y dan satu prediktor terpilih sebagai X.</p>
+    <div class="grid"><div><label>Prediktor X</label><select id="xvar"><option value="ndvi">NDVI</option><option value="built_up">Built-up</option><option value="tavg">Tavg</option><option value="rh">RH</option><option value="wind">Wind</option></select></div>
+    <div><label>Y</label><input value="UHI" disabled></div></div>
+    <div class="actions"><button onclick="runRegression()">Hitung Regresi</button></div>
+  </div>
+  <div class="card" id="regResult">Belum dihitung.</div>
+  <div class="card"><h3>Interpretasi</h3><div id="regNarrative">—</div></div>
+</section>
+
+<section id="forecast" class="page">
+  <div class="card"><h2>Forecasting</h2><p>Forecast sederhana berbasis regresi linear terhadap indeks waktu. Gunakan untuk demonstrasi awal; model deret waktu final sebaiknya divalidasi dengan metode yang sesuai.</p>
+    <div class="grid"><div><label>Jumlah periode ke depan</label><input id="horizon" type="number" value="5" min="1" max="50"></div>
+    <div><label>Frekuensi</label><select id="freq"><option value="year">Tahunan</option><option value="month">Bulanan</option></select></div></div>
+    <div class="actions"><button onclick="runForecast()">Forecast UHI</button></div>
+  </div>
+  <div class="card" id="forecastResult">Belum dihitung.</div>
+  <div class="card"><canvas id="forecastChart" width="1000" height="300"></canvas></div>
+</section>
+
+<section id="scenario" class="page">
+  <div class="card"><h2>Scenario Engine</h2><p>Simulasi menggunakan model regresi yang dipilih pada halaman Statistics. Skenario bersifat analitik dan bukan prediksi kausal otomatis.</p>
+    <div class="grid">
+      <div><label>NDVI baru</label><input id="s_ndvi" type="number" step=".01" value=".50"></div>
+      <div><label>Built-up baru (%)</label><input id="s_bu" type="number" step=".1" value="50"></div>
+      <div><label>Tavg baru (°C)</label><input id="s_t" type="number" step=".1" value="28"></div>
+      <div><label>RH baru (%)</label><input id="s_rh" type="number" step=".1" value="80"></div>
+      <div><label>Wind baru (m/s)</label><input id="s_w" type="number" step=".1" value="2"></div>
+    </div>
+    <div class="actions"><button onclick="runScenario()">Jalankan Skenario</button></div>
+  </div>
+  <div class="card" id="scenarioResult">Belum dihitung.</div>
+</section>
+
+<section id="report" class="page">
+  <div class="card"><h2>Research Report Generator</h2>
+    <p>Generate ringkasan siap dipindahkan ke BAB IV. Semua angka berasal dari data aktif.</p>
+    <div class="actions"><button onclick="generateReport()">Buat Narasi BAB IV</button><button class="btn alt" onclick="downloadReport()">Download TXT</button></div>
+  </div>
+  <div class="card"><textarea id="reportText" style="min-height:500px"></textarea></div>
+</section>
+</main>
+<footer>UHI–SDGs Analytics • Thesis 1 • Browser Offline Engine • Data demo hanya untuk pengujian</footer>
+
+<script>
+let rows=[]; let lastReg=null; let lastForecast=null;
+const cols=["date","location","lst_urban","lst_reference","ndvi","built_up","tavg","rh","wind","rain","sunshine"];
+const labels={date:"Tanggal",location:"Lokasi",lst_urban:"LST Urban",lst_reference:"LST Reference",ndvi:"NDVI",built_up:"Built-up %",tavg:"Tavg",rh:"RH",wind:"Wind",rain:"Rain",sunshine:"Sunshine"};
+
+function showPage(id,el){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));if(el)el.classList.add("active"); if(id==="uhi")updateUHI(); if(id==="dashboard")updateDash();}
+function num(v){let x=parseFloat(v);return Number.isFinite(x)?x:null}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function renderTable(){
+ let t=document.getElementById("dataTable"); if(!rows.length){t.innerHTML="<tr><td>Belum ada data.</td></tr>";return;}
+ t.innerHTML="<thead><tr>"+cols.map(c=>"<th>"+labels[c]+"</th>").join("")+"<th>Aksi</th></tr></thead><tbody>"+
+ rows.map((r,i)=>"<tr>"+cols.map(c=>"<td>"+esc(r[c])+"</td>").join("")+"<td><button class='btn danger' onclick='delRow("+i+")'>Hapus</button></td></tr>").join("")+"</tbody>";
+}
+function addRow(){
+ let r={date:document.getElementById("f_date").value||new Date().toISOString().slice(0,10),location:document.getElementById("f_loc").value||"Urban"};
+ [["lst_urban","f_lu"],["lst_reference","f_lr"],["ndvi","f_ndvi"],["built_up","f_bu"],["tavg","f_t"],["rh","f_rh"],["wind","f_w"],["rain","f_rain"],["sunshine","f_sun"]].forEach(([a,b])=>r[a]=num(document.getElementById(b).value));
+ rows.push(r);renderTable();updateDash();
+}
+function delRow(i){rows.splice(i,1);renderTable();updateDash()}
+function clearData(){if(confirm("Kosongkan seluruh data?")){rows=[];renderTable();updateDash()}}
+function loadDemo(){
+ rows=[];
+ let start=new Date("2018-01-01");
+ for(let i=0;i<36;i++){
+   let d=new Date(start);d.setMonth(d.getMonth()+i);
+   let season=Math.sin(i/2.4)*.55;
+   let lu=33.0+season+i*.025+(i%5)*.08;
+   let lr=29.8+season*.35+(i%4)*.04;
+   rows.push({date:d.toISOString().slice(0,10),location:"Urban",lst_urban:+lu.toFixed(2),lst_reference:+lr.toFixed(2),
+   ndvi:+(0.48+Math.sin(i/7)*.06-i*.001).toFixed(3),built_up:+(42+i*.18).toFixed(2),tavg:+(27.5+season*.45).toFixed(2),
+   rh:+(81-season*2).toFixed(2),wind:+(1.8+Math.cos(i/4)*.25).toFixed(2),rain:+Math.max(0,180+Math.sin(i/1.7)*120).toFixed(1),sunshine:+(5.5+Math.cos(i/3)*1.1).toFixed(2)});
+ }
+ renderTable();updateDash();alert("Data demo dimuat: 36 observasi bulanan. Bukan data penelitian aktual.");
+}
+function parseCSV(text){
+ let lines=text.trim().split(/\r?\n/).filter(Boolean); if(!lines.length)return;
+ let h=lines[0].split(",").map(x=>x.trim().toLowerCase());
+ const required=["date","lst_urban","lst_reference"];
+ const missing=required.filter(c=>!h.includes(c));
+ if(missing.length){alert("CSV belum valid. Kolom wajib yang belum ada: "+missing.join(", "));return;}
+ rows=lines.slice(1).map(line=>{let v=line.split(",");let r={};h.forEach((k,i)=>r[k]=v[i]??"");cols.forEach(c=>{if(!(c in r))r[c]=c==="location"?"Urban":null;});return r});
+ renderTable();updateDash();
+ document.getElementById("status").innerHTML='<div class="ok"><b>'+rows.length+'</b> observasi berhasil diimpor. Kolom wajib LST Urban/Reference tersedia.</div>';
+}
+function downloadTemplate(){
+ const csv=cols.join(",")+"\n2024-01-01,Urban,35.8,30.2,0.40,0.18,28.0,81,2.0,150,5.5\n";
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="Template_UHI_Thesis1.csv";a.click();
+}
+function importCSV(e){let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>parseCSV(rd.result);rd.readAsText(f)}
+function exportCSV(){
+ if(!rows.length)return alert("Tidak ada data.");
+ let csv=cols.join(",")+"\\n"+rows.map(r=>cols.map(c=>r[c]??"").join(",")).join("\\n");
+ let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="uhi_sdg_analytics_data.csv";a.click();
+}
+function uhis(){return rows.map(r=>({...r,uhi:(num(r.lst_urban)!=null&&num(r.lst_reference)!=null)?num(r.lst_urban)-num(r.lst_reference):null})).filter(r=>r.uhi!=null)}
+function mean(a){return a.length?a.reduce((s,x)=>s+x,0)/a.length:null}
+function sd(a){if(a.length<2)return null;let m=mean(a);return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1))}
+function updateDash(){
+ document.getElementById("kpiN").textContent=rows.length;
+ let u=uhis().map(x=>x.uhi);document.getElementById("kpiUhi").textContent=u.length?mean(u).toFixed(2)+" °C":"—";
+ if(lastReg)document.getElementById("kpiR2").textContent=lastReg.r2.toFixed(3); else document.getElementById("kpiR2").textContent="—";
+ document.getElementById("status").innerHTML=rows.length?`<div class="ok"><b>${rows.length}</b> observasi aktif. UHI dapat dihitung pada ${u.length} baris.</div>`:"Belum ada data.";
+}
+function updateUHI(){
+ let u=uhis();if(!u.length){document.getElementById("uhiSummary").innerHTML="Belum ada data LST urban/reference.";return}
+ let m=mean(u.map(x=>x.uhi)), mx=Math.max(...u.map(x=>x.uhi)), mn=Math.min(...u.map(x=>x.uhi));
+ let th=num(document.getElementById("uhiThreshold").value)||2, hot=u.filter(x=>x.uhi>=th).length;
+ document.getElementById("uhiSummary").innerHTML=`<div class="grid"><div><b>Mean UHI</b><div class="kpi">${m.toFixed(2)}°C</div></div><div><b>Minimum</b><div class="kpi">${mn.toFixed(2)}°C</div></div><div><b>Maksimum</b><div class="kpi">${mx.toFixed(2)}°C</div></div><div><b>≥ ambang ${th}°C</b><div class="kpi">${hot}</div></div></div>`;
+ drawLine("uhiChart",u.map((x,i)=>i+1),u.map(x=>x.uhi),"UHI");
+}
+function regression(x,y){
+ let n=x.length,mx=mean(x),my=mean(y);let sxx=x.reduce((s,v)=>s+(v-mx)**2,0),sxy=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0);
+ if(!sxx)return null;let b=sxy/sxx,a=my-b*mx;let pred=x.map(v=>a+b*v);let sse=y.reduce((s,v,i)=>s+(v-pred[i])**2,0),sst=y.reduce((s,v)=>s+(v-my)**2,0);
+ let r2=sst?1-sse/sst:0;let r=Math.sign(b)*Math.sqrt(Math.max(0,r2));
+ return {a,b,r2,r};
+}
+function runRegression(){
+ let xvar=document.getElementById("xvar").value;let pairs=uhis().map(r=>[num(r[xvar]),r.uhi]).filter(p=>p[0]!=null);
+ if(pairs.length<3)return alert("Minimal 3 observasi valid.");
+ let res=regression(pairs.map(p=>p[0]),pairs.map(p=>p[1]));lastReg={...res,xvar,n:pairs.length};updateDash();
+ document.getElementById("regResult").innerHTML=`<h3>Model</h3><span class="formula">UHI = ${res.a.toFixed(4)} ${res.b>=0?"+":"−"} ${Math.abs(res.b).toFixed(4)} × ${xvar}</span><p>n = ${pairs.length} • r = ${res.r.toFixed(4)} • R² = ${res.r2.toFixed(4)}</p>`;
+ let dir=res.b<0?"negatif":"positif";
+ document.getElementById("regNarrative").innerHTML=`Dalam data aktif, model linear menunjukkan hubungan <b>${dir}</b> antara ${xvar} dan UHI. R² sebesar <b>${res.r2.toFixed(4)}</b> adalah ukuran kecocokan model pada dataset ini, bukan bukti kausalitas.`;
+}
+function runForecast(){
+ let u=uhis().filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));if(u.length<4)return alert("Minimal 4 observasi UHI bertanggal.");
+ let y=u.map(r=>r.uhi),x=y.map((_,i)=>i+1),res=regression(x,y),h=Math.max(1,parseInt(document.getElementById("horizon").value)||5);
+ let preds=[];for(let i=1;i<=h;i++)preds.push(res.a+res.b*(y.length+i));
+ let last=new Date(u[u.length-1].date),freq=document.getElementById("freq").value;
+ let labelsF=preds.map((v,i)=>{let d=new Date(last);if(freq==="year")d.setFullYear(d.getFullYear()+i+1);else d.setMonth(d.getMonth()+i+1);return d.toISOString().slice(0,10)});
+ lastForecast={labels:labelsF,preds,fit:res};
+ document.getElementById("forecastResult").innerHTML=`<h3>Forecast UHI</h3><p>Model indeks-waktu: UHI = ${res.a.toFixed(3)} ${res.b>=0?"+":"−"} ${Math.abs(res.b).toFixed(3)}×t • R²=${res.r2.toFixed(3)}</p><table><tr><th>Periode</th><th>Forecast UHI (°C)</th></tr>${preds.map((v,i)=>`<tr><td>${labelsF[i]}</td><td>${v.toFixed(2)}</td></tr>`).join("")}</table><div class="note">Ini adalah baseline forecasting sederhana. Untuk skripsi final, model harus dipilih dan divalidasi berdasarkan karakteristik deret waktu aktual.</div>`;
+ drawLine("forecastChart",Array.from({length:y.length+h},(_,i)=>i+1),y.concat(preds),"Aktual + Forecast",y.length);
+}
+function runScenario(){
+ if(!lastReg)runRegression(); if(!lastReg)return;
+ let val=num(document.getElementById("s_"+lastReg.xvar==="built_up"?"bu":lastReg.xvar).value);
+ if(lastReg.xvar==="ndvi")val=num(document.getElementById("s_ndvi").value);
+ if(lastReg.xvar==="built_up")val=num(document.getElementById("s_bu").value);
+ if(lastReg.xvar==="tavg")val=num(document.getElementById("s_t").value);
+ if(lastReg.xvar==="rh")val=num(document.getElementById("s_rh").value);
+ if(lastReg.xvar==="wind")val=num(document.getElementById("s_w").value);
+ if(val==null)return;
+ let pred=lastReg.a+lastReg.b*val;
+ document.getElementById("scenarioResult").innerHTML=`<div class="ok"><b>Hasil model skenario</b><div class="kpi">${pred.toFixed(2)}°C UHI</div><p>Prediktor ${lastReg.xvar} = ${val}. Ini adalah hasil simulasi model linear, bukan prediksi kausal atau jaminan kondisi lapangan.</p></div>`;
+}
+function drawLine(id,x,y,title,split=null){
+ let c=document.getElementById(id),ctx=c.getContext("2d"),w=c.width=c.clientWidth*2,h=c.height=300*2;ctx.clearRect(0,0,w,h);ctx.scale(2,2);w/=2;h/=2;
+ let pad=35, min=Math.min(...y),max=Math.max(...y);if(min===max){min-=1;max+=1}
+ ctx.beginPath();ctx.moveTo(pad,h-pad);ctx.lineTo(w-10,h-pad);ctx.moveTo(pad,10);ctx.lineTo(pad,h-pad);ctx.stroke();
+ ctx.beginPath();y.forEach((v,i)=>{let xx=pad+i*(w-pad-12)/Math.max(1,y.length-1),yy=h-pad-(v-min)/(max-min)*(h-pad-20);i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.stroke();
+ ctx.fillStyle="#172033";ctx.font="12px Arial";ctx.fillText(title,pad,18);ctx.fillText(max.toFixed(1),4,18);ctx.fillText(min.toFixed(1),4,h-pad);
+ if(split!=null){let xx=pad+(split-1)*(w-pad-12)/Math.max(1,y.length-1);ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(xx,10);ctx.lineTo(xx,h-pad);ctx.stroke();ctx.setLineDash([]);ctx.fillText("forecast",xx+5,30)}
+}
+function generateReport(){
+ let u=uhis(),um=u.length?mean(u.map(x=>x.uhi)):null,xvar=document.getElementById("xvar").value;
+ let txt=`BAB IV – HASIL DAN PEMBAHASAN\\n\\nDATA\\nJumlah observasi: ${rows.length}. Observasi dengan LST urban dan reference yang dapat dihitung UHI: ${u.length}.\\n\\nUHI\\nRata-rata UHI: ${um==null?"—":um.toFixed(2)+" °C"}. Minimum: ${u.length?Math.min(...u.map(x=>x.uhi)).toFixed(2):"—"} °C. Maksimum: ${u.length?Math.max(...u.map(x=>x.uhi)).toFixed(2):"—"} °C.\\n\\nREGRESI\\n`;
+ if(lastReg)txt+=`Model: UHI = ${lastReg.a.toFixed(4)} ${lastReg.b>=0?"+":"−"} ${Math.abs(lastReg.b).toFixed(4)} × ${lastReg.xvar}. R² = ${lastReg.r2.toFixed(4)}; r = ${lastReg.r.toFixed(4)}.\\n`;
+ else txt+="Regresi belum dijalankan.\\n";
+ txt+=`\\nFORECASTING\\n`;
+ if(lastForecast)txt+=lastForecast.labels.map((d,i)=>`${d}: ${lastForecast.preds[i].toFixed(2)} °C`).join("\\n");
+ else txt+="Forecast belum dijalankan.";
+ txt+=`\\n\\nCATATAN: Interpretasi final harus menggunakan data aktual, metode penginderaan jauh yang terdokumentasi, dan validasi statistik yang sesuai.`;
+ document.getElementById("reportText").value=txt;
+}
+function downloadReport(){let t=document.getElementById("reportText").value;if(!t)generateReport();let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([document.getElementById("reportText").value],{type:"text/plain;charset=utf-8"}));a.download="UHI_SDGs_BAB_IV_Report.txt";a.click()}
+renderTable();updateDash();
+</script>
+</body>
+</html>
