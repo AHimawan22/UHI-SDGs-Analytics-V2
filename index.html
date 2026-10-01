@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UHI–SDGs Analytics V2 • FINAL</title>
+<style>
+:root{
+ --nav:#041c31;--nav2:#062944;--panel:#06243a;--panel2:#0a3049;
+ --cyan:#22d7ff;--blue:#258fff;--green:#21d69a;--violet:#a96cff;
+ --orange:#ff8a30;--red:#ff4d50;--white:#f3fbff;--muted:#8fb0c0;--line:#17708f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Segoe UI,Inter,Arial,sans-serif;color:var(--white)}
+body{
+ background:
+ radial-gradient(circle at 15% 10%,rgba(0,174,255,.20),transparent 25%),
+ radial-gradient(circle at 84% 18%,rgba(0,255,202,.13),transparent 22%),
+ linear-gradient(135deg,#020b14 0%,#04243a 48%,#02101e 100%);
+ overflow-x:hidden;
+}
+body:before{
+ content:"";position:fixed;inset:0;z-index:-2;opacity:.34;
+ background:
+ linear-gradient(90deg,transparent 0 96%,rgba(31,214,255,.32) 96% 97%,transparent 97%),
+ linear-gradient(transparent 0 96%,rgba(31,214,255,.25) 96% 97%,transparent 97%);
+ background-size:44px 44px;
+}
+body:after{
+ content:"";position:fixed;right:-12vw;top:7vh;width:42vw;height:42vw;border-radius:50%;
+ background:radial-gradient(circle at 35% 40%,rgba(255,91,49,.30),transparent 10%,rgba(255,50,100,.10) 28%,transparent 62%);
+ z-index:-1;pointer-events:none;
+}
+.app{display:flex;min-height:100vh}
+.sidebar{
+ width:238px;position:fixed;inset:0 auto 0 0;z-index:50;padding:18px 12px;
+ background:linear-gradient(180deg,rgba(3,24,42,.97),rgba(2,12,24,.98));
+ border-right:1px solid #0d6180;box-shadow:10px 0 35px #0007;overflow:auto;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:5px 9px 17px;border-bottom:1px solid #14506a}
+.brandIcon{width:43px;height:43px;border-radius:50%;display:grid;place-items:center;font-size:24px;
+ background:radial-gradient(circle at 35% 30%,#dff,#1cb7e8 38%,#075277 72%);box-shadow:0 0 25px #17d7ff55}
+.brand b{font-size:16px}.brand small{display:block;color:#6ea1b6;font-size:8px;letter-spacing:.08em;margin-top:3px}
+.nav{margin-top:16px}.nav button{
+ width:100%;border:1px solid transparent;background:transparent;color:#a7c1ce;
+ border-radius:8px;padding:11px 12px;margin:3px 0;text-align:left;font-weight:650;cursor:pointer;
+ display:flex;align-items:center;gap:11px;transition:.18s
+}
+.nav button:hover{background:#0b3853;border-color:#166d8c;color:#fff}
+.nav button.active{background:linear-gradient(90deg,#0877aa,#075176);border-color:#16cfff;color:#fff;box-shadow:0 0 20px #00bfff20}
+.nav i{width:23px;text-align:center;font-style:normal;font-size:17px}
+.sideFoot{position:absolute;left:17px;right:17px;bottom:13px;color:#527c8e;font-size:8px;line-height:1.5}
+.content{margin-left:238px;width:calc(100% - 238px);min-width:0}
+.topbar{
+ height:74px;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;
+ position:sticky;top:0;z-index:40;background:rgba(3,20,34,.90);backdrop-filter:blur(15px);
+ border-bottom:1px solid #15516a
+}
+.title h1{margin:0;font-size:23px;letter-spacing:.02em}.title h1 span{color:#20d9ff}
+.title p{margin:3px 0 0;font-size:10px;color:#83a8b8}
+.topActions{display:flex;gap:7px;align-items:center}.btn{
+ border:1px solid #177c9e;border-radius:8px;background:linear-gradient(135deg,#087cab,#07506e);
+ color:#fff;padding:8px 11px;font-weight:700;font-size:10px;cursor:pointer
+}.btn.green{background:linear-gradient(135deg,#0a9d78,#07664f);border-color:#1fd6a3}
+.btn.ghost{background:#071d2c}.btn:hover{filter:brightness(1.12)}
+.page{display:none;padding:18px 22px 35px;max-width:1500px;margin:auto}.page.active{display:block}
+.hero{
+ position:relative;overflow:hidden;margin-bottom:14px;padding:22px 24px;border-radius:15px;
+ border:1px solid #1880a1;background:
+ linear-gradient(105deg,rgba(5,49,75,.97),rgba(5,32,51,.94) 58%,rgba(7,28,48,.92));
+ box-shadow:0 10px 35px #0005
+}
+.hero:before{content:"";position:absolute;right:-70px;top:-130px;width:390px;height:390px;border-radius:50%;
+ background:radial-gradient(circle,rgba(21,220,255,.18),transparent 61%);pointer-events:none}
+.hero:after{content:"";position:absolute;right:4%;bottom:-35px;width:260px;height:100px;
+ background:linear-gradient(135deg,transparent 20%,rgba(0,255,187,.10) 20% 30%,transparent 30% 42%,rgba(0,195,255,.12) 42% 52%,transparent 52%);
+ transform:skewX(-30deg);pointer-events:none}
+.heroTag{color:#4fe1ff;font-size:9px;font-weight:800;letter-spacing:.16em}.hero h2{margin:7px 0 4px;font-size:29px}.hero p{margin:0;color:#9dc2d1;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.kpi{
+ min-height:105px;padding:15px 17px;border-radius:12px;border:1px solid #18627d;
+ background:linear-gradient(145deg,rgba(7,40,61,.97),rgba(4,23,38,.97));position:relative;overflow:hidden
+}
+.kpi:after{content:"";position:absolute;right:-20px;top:-25px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 68%)}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cyan)}
+.kpi.green:before{background:var(--green)}.kpi.violet:before{background:var(--violet)}.kpi.orange:before{background:var(--orange)}
+.kpi label{font-size:9px;color:#80aabd;text-transform:uppercase;letter-spacing:.1em}.kpi strong{display:block;font-size:27px;margin:8px 0 3px}.kpi span{font-size:10px;color:#8aa9b7}
+.grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:13px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.card{
+ background:linear-gradient(145deg,rgba(6,36,56,.97),rgba(4,21,35,.97));border:1px solid #16617c;
+ border-radius:12px;padding:14px;box-shadow:0 9px 28px #0005;margin-bottom:13px
+}
+.cardHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.card h3{margin:0;font-size:13px}.cardHead small{font-size:8px;color:#6693a5}
+.tableWrap{overflow:auto;max-height:320px;border:1px solid #134a62;border-radius:8px}
+table{width:100%;border-collapse:collapse;min-width:560px;font-size:10px}th,td{padding:8px;border-bottom:1px solid #123c50;white-space:nowrap}
+th{background:#0b3046;color:#7ddfff;position:sticky;top:0}td{color:#cbe2eb}td:not(:first-child),th:not(:first-child){text-align:right}
+tr:hover td{background:#0a3148}
+canvas{width:100%;height:270px;background:#031522;border:1px solid #124a62;border-radius:8px}
+.chartLegend{display:flex;gap:13px;font-size:9px;color:#8faebc;margin-top:7px}.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field label{display:block;color:#83a7b6;font-size:9px;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:8px;border-radius:7px;border:1px solid #164d65;background:#031722;color:#fff;outline:none}
+.field input:focus,.field select:focus{border-color:#21d7ff}.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.statList{display:grid;gap:6px}.statRow{display:flex;justify-content:space-between;gap:10px;padding:7px 8px;background:#051b2a;border:1px solid #12394e;border-radius:6px;font-size:10px}.statRow b{color:#6bdfff}
+.formula{font-family:Consolas,monospace;font-size:11px;line-height:1.6;background:#02111c;border:1px solid #164b62;border-radius:7px;padding:11px;color:#6fe1ff}
+.scenarios{display:grid;gap:7px}.scenario{padding:11px;border:1px solid #16516a;border-radius:8px;background:#051a28}.scenario b{display:block;margin-bottom:4px}.scenario span{color:#89a8b6;font-size:9px}
+.badge{display:inline-block;padding:4px 7px;border:1px solid #1a7998;border-radius:20px;color:#63ddff;font-size:8px;font-weight:800}
+.sdg{display:flex;gap:11px;align-items:center;padding:12px;border:1px solid #18556d;border-radius:9px;background:#061c2b;font-size:11px}.sdgNum{font-weight:900;font-size:22px;background:#e9781e;border-radius:6px;padding:7px 9px}.sdg:nth-child(2) .sdgNum{background:#43954b}
+.empty{padding:28px;text-align:center;color:#668a9a;border:1px dashed #18506a;border-radius:8px}
+.mobileMenu{display:none}.toast{position:fixed;right:18px;bottom:18px;z-index:100;background:#06273a;border:1px solid #1bd5ff;color:#eaffff;padding:10px 13px;border-radius:8px;display:none;font-size:11px}
+@media(max-width:1050px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
+@media(max-width:760px){
+ .sidebar{transform:translateX(-100%);transition:.22s}.sidebar.open{transform:none}.content{margin-left:0;width:100%}
+ .mobileMenu{display:block}.topbar{padding:10px 14px}.topActions .btn:not(.mobileMenu){display:none}.page{padding:13px}
+ .title h1{font-size:18px}.title p{font-size:8px}.hero h2{font-size:23px}.controls{grid-template-columns:1fr}
+}
+@media(max-width:480px){.kpis{grid-template-columns:1fr}.kpi strong{font-size:24px}}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+.ptkHero{position:relative;overflow:hidden;border-radius:14px;min-height:245px;border:1px solid #1685a6;background:linear-gradient(115deg,#031522 0%,#07344a 42%,#08253a 70%,#160e16 100%);box-shadow:0 12px 35px #0007}
+.ptkHero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(2,20,32,.98) 0%,rgba(2,20,32,.86) 38%,rgba(2,20,32,.15) 67%,rgba(255,53,22,.12) 100%);pointer-events:none}
+.ptkContent{position:relative;z-index:4;padding:23px;max-width:610px}.ptkTag{font-size:9px;letter-spacing:.15em;color:#5de6ff;font-weight:800}
+.ptkHero h2{margin:8px 0 5px;font-size:27px}.ptkHero p{margin:0;color:#b5d3df;font-size:11px;line-height:1.55}
+.ptkHeat{display:inline-block;margin-top:13px;padding:7px 10px;border-radius:20px;background:rgba(255,61,35,.18);border:1px solid rgba(255,101,50,.65);color:#ffd9cf;font-size:9px;font-weight:800}
+.ptkInfo{position:absolute;right:16px;bottom:14px;z-index:5;padding:9px 11px;border-radius:8px;background:rgba(2,16,27,.84);border:1px solid #2a7791;font-size:8px;color:#a9c8d5}
+.urbanHeatAnim{position:absolute;inset:0;overflow:hidden;z-index:1;background:radial-gradient(circle at 78% 48%,rgba(255,40,20,.26),transparent 31%),radial-gradient(circle at 61% 72%,rgba(255,174,25,.17),transparent 26%),linear-gradient(160deg,#05283b,#063d4a 48%,#120f20)}
+.urbanHeatAnim .heatGrid{position:absolute;inset:-20%;opacity:.28;background:repeating-linear-gradient(90deg,transparent 0 30px,rgba(93,230,255,.18) 30px 31px),repeating-linear-gradient(0deg,transparent 0 30px,rgba(93,230,255,.13) 30px 31px);transform:perspective(450px) rotateX(58deg) scale(1.3);transform-origin:center bottom;animation:gridMove 8s linear infinite}
+.urbanHeatAnim .blob{position:absolute;border-radius:50%;filter:blur(10px);mix-blend-mode:screen;animation:heatPulse 4.5s ease-in-out infinite}
+.urbanHeatAnim .b1{width:190px;height:190px;right:9%;top:8%;background:radial-gradient(circle,rgba(255,34,20,.95) 0,rgba(255,83,20,.66) 26%,rgba(255,177,23,.25) 54%,transparent 72%);animation-delay:-1s}
+.urbanHeatAnim .b2{width:150px;height:150px;right:28%;bottom:0;background:radial-gradient(circle,rgba(255,124,18,.72),rgba(255,200,28,.18) 45%,transparent 70%);animation-delay:-2.4s}
+.urbanHeatAnim .b3{width:120px;height:120px;right:45%;top:18%;background:radial-gradient(circle,rgba(24,215,255,.48),rgba(33,191,219,.13) 50%,transparent 72%);animation-delay:-3.1s}
+.urbanHeatAnim .scan{position:absolute;left:0;right:0;height:2px;top:-4px;background:linear-gradient(90deg,transparent,#57e9ff,rgba(255,255,255,.9),#ff4d25,transparent);box-shadow:0 0 14px #40dfff;opacity:.55;animation:scanDown 5.5s linear infinite}
+.urbanHeatAnim .city{position:absolute;right:0;bottom:0;width:63%;height:48%;display:flex;align-items:flex-end;gap:7px;opacity:.68}
+.urbanHeatAnim .building{background:linear-gradient(180deg,rgba(7,22,36,.98),rgba(4,13,24,.98));border:1px solid rgba(82,205,225,.18);box-shadow:inset 0 0 18px rgba(34,210,239,.06);position:relative}
+.urbanHeatAnim .building:after{content:"";position:absolute;inset:8px 5px;background:repeating-linear-gradient(0deg,rgba(255,176,33,.35) 0 2px,transparent 2px 9px),repeating-linear-gradient(90deg,rgba(90,220,255,.18) 0 2px,transparent 2px 10px);opacity:.55}
+.urbanHeatAnim .bld1{width:10%;height:43%}.urbanHeatAnim .bld2{width:13%;height:68%}.urbanHeatAnim .bld3{width:11%;height:51%}.urbanHeatAnim .bld4{width:16%;height:84%}.urbanHeatAnim .bld5{width:9%;height:58%}.urbanHeatAnim .bld6{width:15%;height:73%}.urbanHeatAnim .bld7{width:12%;height:38%}.urbanHeatAnim .bld8{width:14%;height:62%}
+.urbanHeatAnim .hotLine{position:absolute;right:6%;bottom:31%;width:49%;height:1px;background:linear-gradient(90deg,transparent,#ffbe2e,#ff3a20);box-shadow:0 0 13px rgba(255,72,25,.85);animation:hotSweep 3.8s ease-in-out infinite}
+@keyframes heatPulse{0%,100%{transform:scale(.88) translate(0,0);opacity:.62}50%{transform:scale(1.12) translate(-10px,8px);opacity:1}}
+@keyframes scanDown{0%{top:-4px}100%{top:102%}}
+@keyframes gridMove{0%{transform:perspective(450px) rotateX(58deg) scale(1.3) translateY(0)}100%{transform:perspective(450px) rotateX(58deg) scale(1.3) translateY(31px)}}
+@keyframes hotSweep{0%,100%{opacity:.25;transform:scaleX(.72);transform-origin:right}50%{opacity:1;transform:scaleX(1);transform-origin:right}}
+.ptkDashboard{display:grid;grid-template-columns:1.2fr .8fr;gap:13px;margin-bottom:13px}
+.heatMapMock{min-height:245px;border-radius:11px;border:1px solid #17718f;position:relative;overflow:hidden;background:radial-gradient(circle at 52% 48%,rgba(255,45,30,.92) 0 5%,rgba(255,89,25,.72) 10%,rgba(255,171,28,.48) 20%,transparent 37%),radial-gradient(circle at 33% 62%,rgba(255,190,20,.38),transparent 25%),linear-gradient(145deg,#06263b,#0a4b54 48%,#063146)}
+.heatMapMock:before{content:"";position:absolute;inset:0;opacity:.42;background:linear-gradient(25deg,transparent 46%,#39c7cf 46.5% 47%,transparent 47.5%),linear-gradient(150deg,transparent 38%,#36b6ca 38.5% 39%,transparent 39.5%),repeating-linear-gradient(90deg,transparent 0 31px,rgba(255,255,255,.08) 31px 32px),repeating-linear-gradient(0deg,transparent 0 31px,rgba(255,255,255,.07) 31px 32px)}
+.heatLegend{position:absolute;right:12px;top:12px;z-index:2;font-size:8px;background:#031522d9;padding:8px;border-radius:7px;border:1px solid #19566c}
+.heatScale{width:10px;height:80px;border-radius:7px;margin-top:5px;background:linear-gradient(#ff3020,#ff8a1e,#ffd52d,#20c9d8,#1676cf)}
+.heatLabel{position:absolute;left:13px;bottom:12px;z-index:2;color:#dff7ff;font-size:9px;font-weight:700}
+@media(max-width:760px){.ptkDashboard{grid-template-columns:1fr}.ptkHero{min-height:280px}.ptkContent{max-width:78%}.ptkInfo{position:relative;right:auto;bottom:auto;margin:0 16px 14px;width:max-content}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brandIcon">🌡️</div><div><b>UHI–SDGs</b><small>ANALYTICS V2 • SCIENTIFIC</small></div></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard"><i>⌂</i>Dashboard</button>
+    <button data-page="data"><i>▤</i>Data Editor</button>
+    <button data-page="uhi"><i>🌡</i>UHI Calculator</button>
+    <button data-page="trend"><i>↗</i>Trend Analysis</button>
+    <button data-page="regression"><i>⌁</i>Regression & R²</button>
+    <button data-page="forecast"><i>▥</i>Forecasting</button>
+    <button data-page="scenario"><i>◈</i>Scenario Analysis</button>
+    <button data-page="sdg"><i>◎</i>SDGs 11 & 13</button>
+    <button data-page="report"><i>▣</i>Research Report</button>
+  </nav>
+  <div class="sideFoot">UHI–SDGs Analytics V2<br>Scientific Research Workstation<br>Data → UHI → Statistics → Forecast → Scenario → SDGs</div>
+</aside>
+
+<main class="content">
+<header class="topbar">
+  <div class="title"><h1>UHI–SDGs <span>ANALYTICS</span></h1><p>Urban Heat Island Detection & Forecasting System</p></div>
+  <div class="topActions">
+    <button class="btn ghost mobileMenu" onclick="toggleSide()">☰</button>
+    <button class="btn ghost" onclick="importCSV()">⬆ Import CSV</button>
+    <button class="btn green" onclick="googleLogin()">🔐 Login Google</button><button class="btn" onclick="saveToGoogleDrive()">☁ Save Drive</button><button class="btn ghost" onclick="loadFromGoogleDrive()">📂 Load Drive</button>
+  </div>
+</header>
+<div id="googleStatusBar" style="padding:7px 24px;background:linear-gradient(90deg,#031522,#062a3e);border-bottom:1px solid #15516a;color:#6f9aac;font-size:9px;">Google: belum terhubung</div>
+
+<section id="dashboard" class="page active">
+  <div class="hero">
+<span class="heroTag">UHI • CLIMATE • SDGs • SCIENTIFIC ANALYTICS</span>
+<h2>From Data to Cooling Cities</h2>
+<p>Urban Heat Island Detection & Forecasting System • Data → UHI → Statistics → Forecast → Scenario → SDGs</p>
+<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px">
+<span class="badge">🌡 DETEKSI UHI</span><span class="badge">📈 ANALISIS TREN</span>
+<span class="badge">🔮 FORECASTING</span><span class="badge">◈ SCENARIO</span>
+<span class="badge">🏙 INFRASTRUKTUR</span><span class="badge">◎ SDGs 11/13</span>
+</div></div>
+  <div class="kpis">
+    <div class="kpi"><label>UHI Terdeteksi</label><strong id="kUhi">—</strong><span>Rata-rata periode aktif</span></div>
+    <div class="kpi green"><label>Trend UHI</label><strong id="kTrend">—</strong><span>Perubahan antar periode</span></div>
+    <div class="kpi violet"><label>R² Model</label><strong id="kR2">—</strong><span>Model regresi</span></div>
+    <div class="kpi orange"><label>Observasi</label><strong id="kN">0</strong><span>Baris data aktif</span></div>
+  </div>
+  
+<div class="ptkHero" style="margin-bottom:13px">
+  <div class="urbanHeatAnim" aria-label="Animasi konseptual urban heat island">
+    <div class="heatGrid"></div>
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="scan"></div><div class="hotLine"></div>
+    <div class="city"><i class="building bld1"></i><i class="building bld2"></i><i class="building bld3"></i><i class="building bld4"></i><i class="building bld5"></i><i class="building bld6"></i><i class="building bld7"></i><i class="building bld8"></i></div>
+  </div>
+  <div class="ptkContent">
+    <div class="ptkTag">PONTIANAK • KOTA KHATULISTIWA • 0° LINTANG</div>
+    <h2>Urban Heat Monitoring — Kota Khatulistiwa</h2>
+    <p>Visual utama menggunakan animasi urban heat yang dibuat langsung di dalam dashboard. Nilai UHI aktual tetap mengikuti data penelitian.</p>
+    <div class="ptkHeat">🌡️ URBAN HEAT SIGNAL • LST → UHI • LIVE VISUAL</div>
+  </div>
+  <div class="ptkInfo">URBAN HEAT ANIMATION<br>Visual konseptual • tanpa foto eksternal</div>
+</div>
+<div class="card" style="margin-bottom:13px;background:linear-gradient(90deg,rgba(6,54,78,.97),rgba(6,31,49,.97));">
+
+<div class="cardHead" style="margin-bottom:5px"><h3>🛰 DATA INPUT & SCIENTIFIC PIPELINE</h3><span class="badge">GOOGLE DATA READY</span></div>
+<div style="color:#8fb7c7;font-size:10px">LST Urban • LST Referensi • NDVI • Built-up • Humidity → UHI → Regression → Forecast → Scenario</div>
+</div>
+<div class="grid2">
+    <div class="card"><div class="cardHead"><h3>📊 UHI Aktual & Tren</h3><small>LIVE FROM DATASET</small></div><canvas id="dashChart"></canvas><div class="chartLegend"><span><i class="dot" style="background:#20d7ff"></i>UHI aktual</span></div></div>
+    <div class="card"><div class="cardHead"><h3>🧪 Research Pipeline</h3><span class="badge">V2 CLEAN ARCHITECTURE</span></div>
+      <div class="statList">
+        <div class="statRow"><span>Data</span><b id="pipeData">0 rows</b></div><div class="statRow"><span>UHI Engine</span><b>Ready</b></div>
+        <div class="statRow"><span>Statistics</span><b>Ready</b></div><div class="statRow"><span>Forecast</span><b>Ready</b></div><div class="statRow"><span>Scenario</span><b>Ready</b></div>
+      </div>
+      <div class="formula" style="margin-top:12px">Workflow: DATA → UHI → TREND → REGRESSION → FORECAST → SCENARIO → SDGs</div>
+    </div>
+  </div>
+  
+<div class="ptkDashboard">
+  <div class="card" style="margin-bottom:0">
+    <div class="cardHead"><h3>🔥 Konteks Panas Perkotaan Pontianak</h3><span class="badge">URBAN HEAT</span></div>
+    <div class="heatMapMock">
+      <div class="heatLegend">UHI / LST<div class="heatScale"></div><span>tinggi → rendah</span></div>
+      <div class="heatLabel">Visual konseptual — hasil aktual mengikuti data LST/UHI.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0">
+    <div class="cardHead"><h3>📍 Identitas Lokasi</h3><span class="badge">PONTIANAK</span></div>
+    <div class="statList">
+      <div class="statRow"><span>Kota</span><b>Pontianak</b></div>
+      <div class="statRow"><span>Wilayah</span><b>Kalimantan Barat</b></div>
+      <div class="statRow"><span>Penanda</span><b>Tugu Khatulistiwa</b></div>
+      <div class="statRow"><span>Lintang</span><b>± 0°</b></div>
+      <div class="statRow"><span>Analisis</span><b>LST → UHI → Trend</b></div>
+    </div>
+  </div>
+</div>
+<div class="grid3">
+    <div class="card"><div class="cardHead"><h3>📐 Statistik Deskriptif</h3></div><div class="statList" id="dashStats"><div class="empty">Belum ada data.</div></div></div>
+    <div class="card"><div class="cardHead"><h3>🏙️ Infrastruktur</h3></div><div class="statList"><div class="statRow"><span>Ruang Terbuka Hijau</span><b>Mitigasi UHI</b></div><div class="statRow"><span>Jalan & Koridor</span><b>Desain adaptif</b></div><div class="statRow"><span>Vegetasi</span><b>Pendinginan</b></div></div></div>
+    <div class="card"><div class="cardHead"><h3>🎯 SDGs Terhubung</h3></div><div class="sdg"><div class="sdgNum">11</div><div>Kota & permukiman berkelanjutan</div></div><div style="height:8px"></div><div class="sdg"><div class="sdgNum">13</div><div>Penanganan perubahan iklim</div></div></div>
+  </div>
+</section>
+
+<section id="data" class="page">
+  <div class="hero"><span class="heroTag">DATA EDITOR</span><h2>Data Penelitian</h2><p>Masukkan data tahunan atau impor CSV. Format minimal: Tahun dan UHI, atau LST Urban + LST Referensi.</p></div>
+  <div class="card">
+    <div class="controls">
+      <div class="field"><label>Tahun</label><input id="year" type="number" placeholder="2025"></div>
+      <div class="field"><label>UHI (°C)</label><input id="uhiVal" type="number" step="0.01" placeholder="2.84"></div>
+      <div class="field"><label>Catatan</label><input id="note" placeholder="Observasi"></div>
+    </div>
+    <div class="actions"><button class="btn" onclick="addRow()">＋ Tambah Data</button><button class="btn ghost" onclick="sampleData()">Isi Contoh</button><button class="btn ghost" onclick="clearData()">Reset</button><button class="btn green" onclick="downloadCSV()">⬇ Export CSV</button></div>
+  </div>
+  <div class="card"><div class="cardHead"><h3>Dataset Aktif</h3><span class="badge" id="dataCount">0 OBSERVATIONS</span></div><div class="tableWrap"><table><thead><tr><th>Tahun</th><th>UHI (°C)</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody id="dataBody"></tbody></table></div></div>
+</section>
+
+<section id="uhi" class="page">
+  <div class="hero"><span class="heroTag">UHI ENGINE</span><h2>Urban Heat Island Calculator</h2><p>Hitung intensitas UHI dari LST urban dan LST referensi.</p></div>
+  <div class="card"><div class="controls"><div class="field"><label>LST Urban (°C)</label><input id="lstUrban" type="number" step=".01"></div><div class="field"><label>LST Referensi (°C)</label><input id="lstRef" type="number" step=".01"></div><div class="field"><label>Hasil UHI</label><input id="uhiResult" readonly></div></div><div class="actions"><button class="btn" onclick="calcUHI()">🌡 Hitung UHI</button></div></div>
+  <div class="grid2"><div class="card"><h3>Rumus</h3><div class="formula">UHI = LST Urban − LST Referensi</div></div><div class="card"><h3>Interpretasi</h3><div class="statList"><div class="statRow"><span>&lt; 1 °C</span><b>Rendah</b></div><div class="statRow"><span>1–3 °C</span><b>Moderat</b></div><div class="statRow"><span>&gt; 3 °C</span><b>Tinggi</b></div></div></div></div>
+</section>
+
+<section id="trend" class="page">
+  <div class="hero"><span class="heroTag">TIME SERIES</span><h2>Trend Analysis</h2><p>Melihat perubahan UHI antar tahun berdasarkan dataset aktif.</p></div>
+  <div class="card"><canvas id="trendChart"></canvas></div>
+  <div class="grid2"><div class="card"><h3>Perubahan Awal → Akhir</h3><div class="kpi" style="margin-top:12px"><strong id="trendValue">—</strong><span>Perubahan relatif</span></div></div><div class="card"><h3>Persamaan Trend</h3><div class="formula" id="trendFormula">Belum cukup data.</div></div></div>
+</section>
+
+<section id="regression" class="page">
+  <div class="hero"><span class="heroTag">STATISTICAL MODEL</span><h2>Regression & R²</h2><p>Regresi linear sederhana menggunakan Tahun sebagai X dan UHI sebagai Y.</p></div>
+  <div class="grid2"><div class="card"><canvas id="regChart"></canvas></div><div class="card"><h3>Model</h3><div class="formula" id="regFormula">Belum cukup data.</div><div class="statList" style="margin-top:12px"><div class="statRow"><span>R²</span><b id="regR2">—</b></div><div class="statRow"><span>n</span><b id="regN">0</b></div></div></div></div>
+</section>
+
+<section id="forecast" class="page">
+  <div class="hero"><span class="heroTag">FORECAST ENGINE</span><h2>Forecasting UHI</h2><p>Proyeksi sederhana menggunakan model trend linear dari data aktif.</p></div>
+  <div class="card"><div class="controls"><div class="field"><label>Tahun terakhir</label><input id="lastYear" readonly></div><div class="field"><label>Forecast sampai tahun</label><input id="forecastTo" type="number" value="2030"></div><div class="field"><label>Metode</label><select><option>Linear Trend</option></select></div></div><div class="actions"><button class="btn" onclick="runForecast()">▶ Jalankan Forecast</button></div></div>
+  <div class="card"><div class="tableWrap"><table><thead><tr><th>Tahun</th><th>Forecast UHI (°C)</th><th>Perubahan (%)</th></tr></thead><tbody id="forecastBody"></tbody></table></div></div>
+</section>
+
+<section id="scenario" class="page">
+  <div class="hero"><span class="heroTag">SCENARIO ANALYSIS</span><h2>What-if UHI Scenarios</h2><p>Simulasi perubahan UHI dengan faktor intervensi sederhana.</p></div>
+  <div class="card"><div class="controls"><div class="field"><label>Baseline UHI (°C)</label><input id="baseUhi" type="number" step=".01" value="2.84"></div><div class="field"><label>Reduksi RTH (%)</label><input id="rth" type="number" value="10"></div><div class="field"><label>Intervensi (%)</label><input id="intervention" type="number" value="15"></div></div><div class="actions"><button class="btn" onclick="runScenario()">⚙ Simulasikan</button></div></div>
+  <div class="card"><div class="scenarios" id="scenarioResult"></div></div>
+</section>
+
+<section id="sdg" class="page">
+  <div class="hero"><span class="heroTag">SUSTAINABLE DEVELOPMENT GOALS</span><h2>UHI → SDGs</h2><p>Hubungan analisis UHI dengan SDG 11 dan SDG 13 untuk mendukung perencanaan kota.</p></div>
+  <div class="grid2"><div class="sdg"><div class="sdgNum">11</div><div><b>Sustainable Cities and Communities</b><br><small>Ruang terbuka hijau, tata ruang, kawasan terbangun, koridor perkotaan.</small></div></div><div class="sdg"><div class="sdgNum">13</div><div><b>Climate Action</b><br><small>Mitigasi panas perkotaan dan strategi adaptasi iklim.</small></div></div></div>
+</section>
+
+<section id="report" class="page">
+  <div class="hero"><span class="heroTag">RESEARCH OUTPUT</span><h2>Research Report</h2><p>Ringkasan otomatis dari dataset dan analisis yang tersedia.</p></div>
+  <div class="card"><div id="reportText" class="formula" style="white-space:pre-wrap;font-family:Inter,Arial">Belum ada analisis.</div><div class="actions"><button class="btn green" onclick="copyReport()">📋 Copy Report</button><button class="btn" onclick="window.print()">🖨 Print / PDF</button></div></div>
+</section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+
+
+<script>
+/* ================================
+   GOOGLE OAUTH + GOOGLE DRIVE
+   V2 NEW CLEAN
+   Scope: drive.file
+   Replace the placeholder below with
+   the OAuth Web Client ID from Google Cloud.
+   ================================ */
+const GOOGLE_CLIENT_ID = "226852970062-cr6210jaou8675os7m1cen9caavpm3pl.apps.googleusercontent.com";
+const GOOGLE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const GOOGLE_FILE_NAME = "UHI_SDGs_Analytics_V2_Dataset.json";
+let googleTokenClient = null;
+let googleAccessToken = null;
+
+function setGoogleStatus(msg, ok=false){
+  const el=document.getElementById("googleStatusBar");
+  if(el){
+    el.innerHTML=(ok ? "🟢 " : "🔵 ") + msg;
+    el.style.color=ok ? "#59e0ae" : "#6f9aac";
+  }
+}
+
+function initGoogleAuth(){
+  if(typeof google === "undefined" || !google.accounts || !google.accounts.oauth2){
+    setGoogleStatus("Google Identity Services belum termuat.");
+    return;
+  }
+  if(GOOGLE_CLIENT_ID.includes("PASTE_")){
+    setGoogleStatus("Google siap, tetapi Client ID belum dimasukkan.");
+    return;
+  }
+  googleTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_SCOPE,
+    callback: (response)=>{
+      if(response && response.access_token){
+        googleAccessToken = response.access_token;
+        setGoogleStatus("Login Google aktif • Drive siap digunakan.", true);
+        toast("Google berhasil terhubung");
+      }else{
+        setGoogleStatus("Login Google gagal.");
+      }
+    }
+  });
+  setGoogleStatus("Google OAuth siap.");
+}
+
+function googleLogin(){
+  if(!googleTokenClient){
+    initGoogleAuth();
+    setTimeout(()=>{
+      if(googleTokenClient) googleTokenClient.requestAccessToken({prompt:"consent"});
+      else toast("Client ID Google belum dikonfigurasi");
+    },500);
+    return;
+  }
+  googleTokenClient.requestAccessToken({prompt:"consent"});
+}
+
+async function googleFetch(url, options={}){
+  if(!googleAccessToken) throw new Error("Login Google terlebih dahulu.");
+  const headers=Object.assign({}, options.headers||{}, {
+    Authorization:"Bearer "+googleAccessToken
+  });
+  const r=await fetch(url,Object.assign({},options,{headers}));
+  if(!r.ok) throw new Error("Google API "+r.status+": "+await r.text());
+  return r;
+}
+
+function datasetPayload(){
+  return {
+    app:"UHI–SDGs Analytics V2",
+    version:"V2 NEW CLEAN",
+    savedAt:new Date().toISOString(),
+    rows:rows
+  };
+}
+
+async function findGoogleDataFile(){
+  const q="name='"+GOOGLE_FILE_NAME+"' and trashed=false";
+  const url="https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name,modifiedTime)&q="+encodeURIComponent(q);
+  const r=await googleFetch(url);
+  const j=await r.json();
+  return j.files && j.files.length ? j.files[0] : null;
+}
+
+async function saveToGoogleDrive(){
+  try{
+    if(!googleAccessToken){
+      googleLogin();
+      toast("Login Google dulu");
+      return;
+    }
+    const payload=JSON.stringify(datasetPayload(),null,2);
+    const existing=await findGoogleDataFile();
+    let r;
+
+    if(existing){
+      r=await googleFetch(
+        "https://www.googleapis.com/upload/drive/v3/files/"+encodeURIComponent(existing.id)+"?uploadType=media",
+        {
+          method:"PATCH",
+          headers:{"Content-Type":"application/json"},
+          body:payload
+        }
+      );
+    }else{
+      const boundary="uhi_sdg_"+Date.now();
+      const meta=JSON.stringify({name:GOOGLE_FILE_NAME,mimeType:"application/json"});
+      const body="--"+boundary+"\r\n"+
+        "Content-Type: application/json; charset=UTF-8\r\n\r\n"+meta+"\r\n"+
+        "--"+boundary+"\r\n"+
+        "Content-Type: application/json\r\n\r\n"+payload+"\r\n"+
+        "--"+boundary+"--";
+
+      r=await googleFetch(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name",
+        {
+          method:"POST",
+          headers:{"Content-Type":"multipart/related; boundary="+boundary},
+          body:body
+        }
+      );
+    }
+
+    if(!r.ok) throw new Error("Gagal menyimpan dataset.");
+    setGoogleStatus("Dataset tersimpan di Google Drive.",true);
+    toast("Dataset tersimpan ke Drive");
+  }catch(e){
+    console.error(e);
+    setGoogleStatus(e.message||"Google Drive error");
+    toast("Gagal menyimpan ke Drive");
+  }
+}
+
+async function loadFromGoogleDrive(){
+  try{
+    if(!googleAccessToken){
+      googleLogin();
+      toast("Login Google dulu");
+      return;
+    }
+    const f=await findGoogleDataFile();
+    if(!f){
+      toast("Belum ada dataset V2 di Drive");
+      return;
+    }
+    const r=await googleFetch(
+      "https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(f.id)+"?alt=media"
+    );
+    const payload=await r.json();
+    if(!Array.isArray(payload.rows)) throw new Error("Format dataset tidak valid.");
+    rows=payload.rows;
+    renderAll();
+    setGoogleStatus("Dataset dimuat dari Google Drive • "+rows.length+" observasi.",true);
+    toast("Dataset dimuat dari Drive");
+  }catch(e){
+    console.error(e);
+    setGoogleStatus(e.message||"Google Drive error");
+    toast("Gagal memuat dari Drive");
+  }
+}
+
+window.addEventListener("load",()=>setTimeout(initGoogleAuth,800));
+</script>
+
+<script>
+let rows=[];
+const $=id=>document.getElementById(id);
+function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>t.style.display='none',2200)}
+function toggleSide(){$('sidebar').classList.toggle('open')}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(b.dataset.page).classList.add('active');if(innerWidth<760)toggleSide();renderAll()});
+function addRow(){let y=+$('year').value,u=+$('uhiVal').value;if(!y||Number.isNaN(u)){toast('Isi Tahun dan UHI');return}rows.push({year:y,uhi:u,note:$('note').value||''});rows.sort((a,b)=>a.year-b.year);$('year').value='';$('uhiVal').value='';$('note').value='';renderAll();toast('Data ditambahkan')}
+function sampleData(){rows=[2018,2019,2020,2021,2022,2023,2024,2025].map((y,i)=>({year:y,uhi:+(1.85+i*.24).toFixed(2),note:'Sample'}));renderAll();toast('Contoh data dimuat')}
+function clearData(){if(confirm('Hapus seluruh dataset aktif?')){rows=[];renderAll();toast('Dataset direset')}}
+function renderTable(){ $('dataBody').innerHTML=rows.map((r,i)=>`<tr><td>${r.year}</td><td>${r.uhi.toFixed(2)}</td><td>${r.note||'-'}</td><td><button class="btn ghost" onclick="rows.splice(${i},1);renderAll()">×</button></td></tr>`).join('');$('dataCount').textContent=rows.length+' OBSERVATIONS';$('kN').textContent=rows.length;$('pipeData').textContent=rows.length+' rows'}
+function mean(){return rows.length?rows.reduce((s,r)=>s+r.uhi,0)/rows.length:0}
+function regression(){let n=rows.length;if(n<2)return null;let x=rows.map(r=>r.year),y=rows.map(r=>r.uhi),mx=x.reduce((a,b)=>a+b,0)/n,my=y.reduce((a,b)=>a+b,0)/n;let sxx=x.reduce((s,v)=>s+(v-mx)**2,0),sxy=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0),b=sxy/sxx,a=my-b*mx;let ssTot=y.reduce((s,v)=>s+(v-my)**2,0),ssRes=y.reduce((s,v,i)=>s+(v-(a+b*x[i]))**2,0);return {a,b,r2:ssTot?1-ssRes/ssTot:0,mx,my}}
+function draw(id,series,color='#20d7ff'){let c=$(id);if(!c)return;let dpr=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;let ctx=c.getContext('2d');ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);ctx.strokeStyle='#163e52';ctx.lineWidth=1;for(let i=1;i<6;i++){let yy=25+(h-45)*i/6;ctx.beginPath();ctx.moveTo(40,yy);ctx.lineTo(w-15,yy);ctx.stroke()}if(series.length<2)return;let xs=series.map(p=>p.x),ys=series.map(p=>p.y),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);let sy=v=>h-28-(v-ymin)/((ymax-ymin)||1)*(h-55),sx=v=>40+(v-xmin)/((xmax-xmin)||1)*(w-58);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();series.forEach((p,i)=>{let X=sx(p.x),Y=sy(p.y);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke();ctx.fillStyle=color;series.forEach(p=>{ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),4,0,Math.PI*2);ctx.fill()})}
+function renderStats(){let m=mean(),vals=rows.map(r=>r.uhi),min=vals.length?Math.min(...vals):0,max=vals.length?Math.max(...vals):0,sd=vals.length?Math.sqrt(vals.reduce((s,v)=>s+(v-m)**2,0)/vals.length):0;$('dashStats').innerHTML=rows.length?`<div class="statRow"><span>Minimum</span><b>${min.toFixed(2)} °C</b></div><div class="statRow"><span>Maksimum</span><b>${max.toFixed(2)} °C</b></div><div class="statRow"><span>Mean</span><b>${m.toFixed(2)} °C</b></div><div class="statRow"><span>Std. Deviasi</span><b>${sd.toFixed(2)} °C</b></div>`:'<div class="empty">Belum ada data.</div>';$('kUhi').textContent=rows.length?m.toFixed(2)+' °C':'—'}
+function renderCharts(){let s=rows.map(r=>({x:r.year,y:r.uhi}));draw('dashChart',s);draw('trendChart',s);let reg=regression();if(reg){draw('regChart',s,'#a46cff');$('regFormula').textContent=`UHI = ${reg.a.toFixed(4)} + (${reg.b.toFixed(4)} × Tahun)`;$('regR2').textContent=reg.r2.toFixed(3);$('regN').textContent=rows.length;$('kR2').textContent=reg.r2.toFixed(2);let first=rows[0].uhi,last=rows.at(-1).uhi,pct=first?(last-first)/first*100:0;$('kTrend').textContent=(pct>=0?'↑ ':'↓ ')+Math.abs(pct).toFixed(1)+'%';$('trendValue').textContent=(pct>=0?'↑ ':'↓ ')+Math.abs(pct).toFixed(1)+'%';$('trendFormula').textContent=`UHI = ${reg.a.toFixed(4)} + ${reg.b.toFixed(4)} × Tahun`}else{$('kR2').textContent='—';$('kTrend').textContent='—';$('regFormula').textContent='Belum cukup data.';$('regR2').textContent='—';$('trendValue').textContent='—';$('trendFormula').textContent='Belum cukup data.'}}
+function renderAll(){renderTable();renderStats();renderCharts();updateReport();$('lastYear').value=rows.length?rows.at(-1).year:''}
+function calcUHI(){let a=+$('lstUrban').value,b=+$('lstRef').value;if(Number.isNaN(a)||Number.isNaN(b)){toast('Isi kedua LST');return}$('uhiResult').value=(a-b).toFixed(2)+' °C'}
+function runForecast(){let reg=regression();if(!reg){toast('Minimal 2 data');return}let to=+$('forecastTo').value,last=rows.at(-1),base=last.uhi;let out=[];for(let y=last.year+1;y<=to;y++){let v=reg.a+reg.b*y;out.push({y,v,p:last.uhi?((v-last.uhi)/last.uhi*100):0})}$('forecastBody').innerHTML=out.map(o=>`<tr><td>${o.y}</td><td>${o.v.toFixed(2)}</td><td>${o.p.toFixed(1)}%</td></tr>`).join('');toast('Forecast selesai')}
+function runScenario(){let b=+$('baseUhi').value,r=+$('rth').value,i=+$('intervention').value;$('scenarioResult').innerHTML=[['Baseline',b],['RTH intervention',b*(1-r*.01*.25)],['Climate intervention',b*(1-i*.01*.35)],['Combined intervention',b*(1-r*.01*.25-i*.01*.35)]].map(x=>`<div class="scenario"><b>${x[0]} <span style="float:right">${x[1].toFixed(2)} °C</span></b><span>Simulasi konseptual untuk analisis what-if; bukan observasi aktual.</span></div>`).join('')}
+function updateReport(){let reg=regression();$('reportText').textContent=rows.length?`UHI–SDGs ANALYTICS V2 — RINGKASAN PENELITIAN
+
+Jumlah observasi: ${rows.length}
+Periode: ${rows[0].year}–${rows.at(-1).year}
+Rata-rata UHI: ${mean().toFixed(2)} °C
+Minimum: ${Math.min(...rows.map(r=>r.uhi)).toFixed(2)} °C
+Maksimum: ${Math.max(...rows.map(r=>r.uhi)).toFixed(2)} °C
+${reg?`Model regresi: UHI = ${reg.a.toFixed(4)} + ${reg.b.toFixed(4)} × Tahun
+R²: ${reg.r2.toFixed(3)}`:''}
+
+Catatan: hasil analisis mengikuti dataset aktif.`:'Belum ada dataset aktif.'}
+function copyReport(){navigator.clipboard?.writeText($('reportText').textContent);toast('Report disalin')}
+function downloadCSV(){let csv='Tahun,UHI,Catatan\\n'+rows.map(r=>`${r.year},${r.uhi},"${(r.note||'').replaceAll('"','""')}"`).join('\\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='UHI_SDGs_Dataset.csv';a.click()}
+function importCSV(){$('csvFile').click()}
+$('csvFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>{let lines=rd.result.trim().split(/\\r?\\n/);rows=lines.slice(1).map(l=>{let p=l.split(',');return {year:+p[0],uhi:+p[1],note:(p.slice(2).join(',')||'').replace(/^"|"$/g,'')}}).filter(r=>r.year&&!Number.isNaN(r.uhi));renderAll();toast('CSV berhasil diimpor')};rd.readAsText(f)}
+function saveData(){localStorage.setItem('uhi_sdg_v2_dataset',JSON.stringify(rows));toast('Dataset disimpan di browser')}
+function loadData(){try{rows=JSON.parse(localStorage.getItem('uhi_sdg_v2_dataset')||'[]')}catch(e){rows=[]}}
+loadData();renderAll();
+window.addEventListener('resize',renderCharts);
+</script>
+</body>
+</html>
